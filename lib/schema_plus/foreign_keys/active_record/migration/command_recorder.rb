@@ -16,7 +16,12 @@ module SchemaPlus::ForeignKeys
           options[:references] = nil if polymorphic
           # ugh.  copying and pasting code from ::ActiveRecord::ConnectionAdapters::SchemaStatements#add_reference
           index_options = options.delete(:index)
-          add_column(table_name, "#{ref_name}_id", :integer, options)
+          if ActiveRecord.version < Gem::Version.new("5.1")
+            add_column(table_name, "#{ref_name}_id", :integer, options)
+          else
+            add_column(table_name, "#{ref_name}_id", :bigint, options)
+          end
+
           add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
           add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : {}) if index_options
 
